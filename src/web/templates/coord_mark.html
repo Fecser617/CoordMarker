@@ -3,190 +3,39 @@
 {% block title %}图片框选标记 - CoordMarker{% endblock %}
 
 {% block head %}
-  <style>
-    .page {
-      width: min(1280px, calc(100% - 32px));
-    }
-
-    .tool-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 22px;
-    }
-
-    .tool-header h2 {
-      margin: 0;
-      font-size: 22px;
-    }
-
-    .back-link {
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    .workspace {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 320px;
-      gap: 18px;
-      align-items: start;
-    }
-
-    .canvas-panel,
-    .controls-panel {
-      display: grid;
-      gap: 14px;
-      min-width: 0;
-    }
-
-    .panel-title {
-      margin: 0;
-      font-size: 17px;
-      font-weight: 650;
-    }
-
-    .canvas-shell {
-      display: grid;
-      place-items: center;
-      min-height: 560px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #f9fafb;
-      overflow: hidden;
-    }
-
-    canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      cursor: crosshair;
-    }
-
-    .empty-state {
-      color: var(--muted);
-      padding: 24px;
-      text-align: center;
-    }
-
-    .control-panel {
-      display: grid;
-      gap: 16px;
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #ffffff;
-    }
-
-    .field-group {
-      display: grid;
-      gap: 8px;
-    }
-
-    label,
-    .field-label {
-      font-weight: 650;
-    }
-
-    input[type="file"],
-    select {
-      width: 100%;
-      min-height: 38px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 8px 10px;
-      font: inherit;
-      background: #ffffff;
-    }
-
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    button {
-      min-height: 40px;
-      border: 0;
-      border-radius: 6px;
-      padding: 0 14px;
-      background: var(--accent);
-      color: #ffffff;
-      font: inherit;
-      font-weight: 650;
-      cursor: pointer;
-    }
-
-    button.secondary {
-      border: 1px solid var(--line);
-      background: #ffffff;
-      color: var(--text);
-    }
-
-    button.danger {
-      background: #dc2626;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.55;
-    }
-
-    .readout {
-      display: grid;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .readout strong {
-      color: var(--text);
-    }
-
-    .selection-list {
-      display: grid;
-      gap: 8px;
-      max-height: 260px;
-      overflow: auto;
-    }
-
-    .selection-item {
-      display: grid;
-      gap: 4px;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fbfcfe;
-      cursor: pointer;
-    }
-
-    .selection-item.is-selected {
-      border-color: var(--accent);
-      background: #eef5ff;
-    }
-
-    .selection-item span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .message {
-      padding: 11px 12px;
-      border: 1px solid #b9d3ff;
-      border-radius: 8px;
-      background: #eef5ff;
-      color: #1c4b8f;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 900px) {
-      .workspace {
-        grid-template-columns: 1fr;
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/coord_mark.css') }}">
+  <script>
+    window.COORD_MARK_CONFIG = {
+      initial: {
+        minCanvasWidth: 320,
+        hitPadding: 6,
+        minSelectionSize: 3,
+        defaultText: "文字"
+      },
+      colors: {
+        rectangle: "#2563eb",
+        circle: "#16a34a",
+        arrow: "#7c3aed",
+        text: "#0891b2",
+        selected: "#f97316",
+        preview: "#9333ea"
+      },
+      labels: {
+        rectangle: "方形",
+        circle: "圆形",
+        arrow: "箭头",
+        text: "文字"
+      },
+      messages: {
+        imageLoadFailed: "图片加载失败。"
+      },
+      export: {
+        filename: "图象坐标.txt",
+        numberPrecision: 2
       }
-    }
-  </style>
+    };
+  </script>
+  <script src="{{ url_for('static', filename='js/coord_mark.js') }}" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -200,14 +49,14 @@
       <h3 class="panel-title">图片区域</h3>
       <div class="canvas-shell">
         <canvas id="markCanvas" hidden></canvas>
-        <div id="canvasEmpty" class="empty-state">选择图片后，在图片上按下并拖动即可创建框选。</div>
+        <div id="canvasEmpty" class="empty-state">选择图片后，在图片上按下并拖动即可创建标记。</div>
       </div>
     </section>
 
     <aside class="controls-panel">
       <h3 class="panel-title">框选设置</h3>
       <div class="control-panel">
-        <div class="message">点击已有框选可以选中它，按 Delete 或点击删除按钮可以移除选中的框。</div>
+        <div class="message">Ctrl+左键可以多选；松开 Ctrl 后右键拖动可移动选中项；Ctrl+右键拖动会复制选中项并拖动副本；拖动边、顶点或箭头端点可调整。</div>
 
         <div class="field-group">
           <label for="imageInput">图片文件</label>
@@ -219,625 +68,33 @@
           <select id="shapeSelect">
             <option value="rectangle">方形框选</option>
             <option value="circle">圆形框选</option>
+            <option value="arrow">箭头标记</option>
+            <option value="text">文字框选</option>
           </select>
+        </div>
+
+        <div class="field-group">
+          <label for="textInput">文字内容</label>
+          <input id="textInput" type="text" value="文字" placeholder="输入文字框内容">
         </div>
 
         <div class="readout">
           <div>图片尺寸：<strong id="imageSize">-</strong></div>
-          <div>框选数量：<strong id="selectionCount">0</strong></div>
+          <div>标记数量：<strong id="selectionCount">0</strong></div>
           <div>当前选中：<strong id="selectedInfo">-</strong></div>
         </div>
 
         <div class="actions">
           <button id="deleteButton" type="button" class="danger" disabled>删除选中</button>
           <button id="clearButton" type="button" class="secondary" disabled>清空全部</button>
+          <button id="saveButton" type="button" class="secondary" disabled>保存数据</button>
         </div>
 
         <div class="field-group">
-          <div class="field-label">已保存框选</div>
+          <div class="field-label">已保存标记</div>
           <div id="selectionList" class="selection-list"></div>
         </div>
       </div>
     </aside>
   </div>
-
-  <script>
-    const canvas = document.querySelector("#markCanvas");
-    const ctx = canvas.getContext("2d");
-    const canvasEmpty = document.querySelector("#canvasEmpty");
-    const imageInput = document.querySelector("#imageInput");
-    const shapeSelect = document.querySelector("#shapeSelect");
-    const imageSize = document.querySelector("#imageSize");
-    const selectionCount = document.querySelector("#selectionCount");
-    const selectedInfo = document.querySelector("#selectedInfo");
-    const deleteButton = document.querySelector("#deleteButton");
-    const clearButton = document.querySelector("#clearButton");
-    const selectionList = document.querySelector("#selectionList");
-
-    const config = {
-      minCanvasWidth: 320,
-      hitPadding: 6,
-      minSelectionSize: 3,
-      colors: {
-        rectangle: "#2563eb",
-        circle: "#16a34a",
-        selected: "#f97316",
-        preview: "#9333ea",
-      },
-    };
-
-    let sourceImage = null;
-    let selections = [];
-    let selectedId = null;
-    let dragStart = null;
-    let dragCurrent = null;
-    let moveDrag = null;
-    let resizeDrag = null;
-    let nextSelectionId = 1;
-
-    imageInput.addEventListener("change", async () => {
-      const file = imageInput.files[0];
-      if (!file) {
-        resetCanvas();
-        return;
-      }
-
-      sourceImage = await loadImage(file);
-      selections = [];
-      selectedId = null;
-      nextSelectionId = 1;
-      imageSize.textContent = `${sourceImage.naturalWidth} x ${sourceImage.naturalHeight}`;
-      setupCanvas();
-      renderAll();
-    });
-
-    window.addEventListener("resize", () => {
-      if (!sourceImage) {
-        return;
-      }
-      setupCanvas();
-      renderAll();
-    });
-
-    canvas.addEventListener("contextmenu", (event) => {
-      event.preventDefault();
-    });
-
-    canvas.addEventListener("pointerdown", (event) => {
-      if (!sourceImage) {
-        return;
-      }
-
-      const point = imagePointFromCanvas(canvasPoint(event));
-      const resizeTarget = event.button === 0 ? findResizeTarget(point) : null;
-      if (resizeTarget) {
-        event.preventDefault();
-        selectedId = resizeTarget.selection.id;
-        dragStart = null;
-        dragCurrent = null;
-        moveDrag = null;
-        resizeDrag = {
-          handle: resizeTarget.handle,
-          original: { ...resizeTarget.selection },
-        };
-        canvas.setPointerCapture(event.pointerId);
-        renderAll();
-        return;
-      }
-
-      const hitSelection = findSelectionAt(point);
-      if (hitSelection) {
-        event.preventDefault();
-        selectedId = hitSelection.id;
-        dragStart = null;
-        dragCurrent = null;
-        resizeDrag = null;
-        if (event.button === 2) {
-          moveDrag = {
-            start: point,
-            original: { ...hitSelection },
-          };
-          canvas.setPointerCapture(event.pointerId);
-        } else {
-          moveDrag = null;
-        }
-        renderAll();
-        return;
-      }
-
-      if (event.button !== 0) {
-        return;
-      }
-
-      selectedId = null;
-      dragStart = point;
-      dragCurrent = point;
-      moveDrag = null;
-      resizeDrag = null;
-      canvas.setPointerCapture(event.pointerId);
-      renderAll();
-    });
-
-    canvas.addEventListener("pointermove", (event) => {
-      if (resizeDrag) {
-        const point = imagePointFromCanvas(canvasPoint(event));
-        resizeSelection(resizeDrag.original, resizeDrag.handle, point);
-        renderAll();
-        return;
-      }
-
-      if (moveDrag) {
-        const point = imagePointFromCanvas(canvasPoint(event));
-        moveSelection(moveDrag.original, point.x - moveDrag.start.x, point.y - moveDrag.start.y);
-        renderAll();
-        return;
-      }
-
-      if (!dragStart) {
-        return;
-      }
-
-      dragCurrent = imagePointFromCanvas(canvasPoint(event));
-      renderAll();
-    });
-
-    canvas.addEventListener("pointerup", () => {
-      if (resizeDrag) {
-        resizeDrag = null;
-        renderAll();
-        return;
-      }
-
-      if (moveDrag) {
-        moveDrag = null;
-        renderAll();
-        return;
-      }
-
-      if (!dragStart || !dragCurrent) {
-        return;
-      }
-
-      const box = boxFromDrag(dragStart, dragCurrent, shapeSelect.value);
-      if (box.width >= 3 && box.height >= 3) {
-        const selection = {
-          id: nextSelectionId++,
-          shape: shapeSelect.value,
-          ...box,
-        };
-        selections.push(selection);
-        selectedId = selection.id;
-      }
-
-      dragStart = null;
-      dragCurrent = null;
-      renderAll();
-    });
-
-    canvas.addEventListener("pointercancel", () => {
-      dragStart = null;
-      dragCurrent = null;
-      moveDrag = null;
-      resizeDrag = null;
-      renderAll();
-    });
-
-    deleteButton.addEventListener("click", deleteSelected);
-    clearButton.addEventListener("click", () => {
-      selections = [];
-      selectedId = null;
-      renderAll();
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Delete" || event.key === "Backspace") {
-        const activeTag = document.activeElement.tagName;
-        if (activeTag === "INPUT" || activeTag === "SELECT") {
-          return;
-        }
-        deleteSelected();
-      }
-    });
-
-    function loadImage(file) {
-      return new Promise((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => resolve(image);
-        image.onerror = () => reject(new Error("图片加载失败。"));
-        image.src = URL.createObjectURL(file);
-      });
-    }
-
-    function setupCanvas() {
-      const maxWidth = canvas.parentElement.clientWidth;
-      const width = Math.max(config.minCanvasWidth, Math.min(maxWidth, sourceImage.naturalWidth));
-      const height = Math.round(width * sourceImage.naturalHeight / sourceImage.naturalWidth);
-      canvas.width = width;
-      canvas.height = height;
-      canvas.hidden = false;
-      canvasEmpty.hidden = true;
-    }
-
-    function resetCanvas() {
-      sourceImage = null;
-      selections = [];
-      selectedId = null;
-      dragStart = null;
-      dragCurrent = null;
-      moveDrag = null;
-      resizeDrag = null;
-      canvas.hidden = true;
-      canvasEmpty.hidden = false;
-      imageSize.textContent = "-";
-      renderControls();
-    }
-
-    function renderAll() {
-      drawCanvas();
-      renderControls();
-    }
-
-    function drawCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(sourceImage, 0, 0, canvas.width, canvas.height);
-
-      selections.forEach((selection) => {
-        drawSelection(selection, selection.id === selectedId);
-      });
-
-      if (dragStart && dragCurrent) {
-        drawSelection(
-          {
-            id: 0,
-            shape: shapeSelect.value,
-            ...boxFromDrag(dragStart, dragCurrent, shapeSelect.value),
-          },
-          true,
-          true,
-        );
-      }
-    }
-
-    function drawSelection(selection, isSelected, isPreview = false) {
-      const box = canvasBox(selection);
-      const color = isPreview ? config.colors.preview : isSelected ? config.colors.selected : config.colors[selection.shape];
-      ctx.save();
-      ctx.lineWidth = isSelected ? 3 : 2;
-      ctx.strokeStyle = color;
-      ctx.fillStyle = withAlpha(color, isPreview ? 0.16 : 0.10);
-      ctx.setLineDash(isPreview ? [8, 5] : []);
-
-      if (selection.shape === "circle") {
-        ctx.beginPath();
-        ctx.ellipse(
-          box.left + box.width / 2,
-          box.top + box.height / 2,
-          box.width / 2,
-          box.height / 2,
-          0,
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
-        ctx.stroke();
-      } else {
-        ctx.fillRect(box.left, box.top, box.width, box.height);
-        ctx.strokeRect(box.left, box.top, box.width, box.height);
-      }
-      if (isSelected && !isPreview) {
-        drawResizeHints(selection, box);
-      }
-      ctx.restore();
-    }
-
-    function drawResizeHints(selection, box) {
-      ctx.setLineDash([]);
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = config.colors.selected;
-      ctx.lineWidth = 2;
-
-      if (selection.shape === "circle") {
-        const centerX = box.left + box.width / 2;
-        const centerY = box.top + box.height / 2;
-        const radius = box.width / 2;
-        drawHandle(centerX + radius, centerY);
-        drawHandle(centerX - radius, centerY);
-        drawHandle(centerX, centerY - radius);
-        drawHandle(centerX, centerY + radius);
-        return;
-      }
-
-      [
-        [box.left, box.top],
-        [box.left + box.width / 2, box.top],
-        [box.left + box.width, box.top],
-        [box.left + box.width, box.top + box.height / 2],
-        [box.left + box.width, box.top + box.height],
-        [box.left + box.width / 2, box.top + box.height],
-        [box.left, box.top + box.height],
-        [box.left, box.top + box.height / 2],
-      ].forEach(([x, y]) => drawHandle(x, y));
-    }
-
-    function drawHandle(x, y) {
-      ctx.beginPath();
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-    }
-
-    function renderControls() {
-      selectionCount.textContent = String(selections.length);
-      const selected = selections.find((selection) => selection.id === selectedId);
-      selectedInfo.textContent = selected ? describeSelection(selected) : "-";
-      deleteButton.disabled = !selected;
-      clearButton.disabled = selections.length === 0;
-
-      selectionList.innerHTML = selections.map((selection) => `
-        <div class="selection-item ${selection.id === selectedId ? "is-selected" : ""}" data-id="${selection.id}">
-          <strong>#${selection.id} ${selection.shape === "circle" ? "圆形" : "方形"}</strong>
-          <span>${describeSelection(selection)}</span>
-        </div>
-      `).join("");
-
-      selectionList.querySelectorAll(".selection-item").forEach((item) => {
-        item.addEventListener("click", () => {
-          selectedId = Number(item.dataset.id);
-          renderAll();
-        });
-      });
-    }
-
-    function deleteSelected() {
-      if (!selectedId) {
-        return;
-      }
-      selections = selections.filter((selection) => selection.id !== selectedId);
-      selectedId = null;
-      renderAll();
-    }
-
-    function moveSelection(original, deltaX, deltaY) {
-      const selection = selections.find((candidate) => candidate.id === original.id);
-      if (!selection) {
-        return;
-      }
-
-      const width = original.right - original.left;
-      const height = original.bottom - original.top;
-      const left = Math.max(0, Math.min(sourceImage.naturalWidth - width, original.left + deltaX));
-      const top = Math.max(0, Math.min(sourceImage.naturalHeight - height, original.top + deltaY));
-
-      selection.left = left;
-      selection.top = top;
-      selection.right = left + width;
-      selection.bottom = top + height;
-      selection.width = width;
-      selection.height = height;
-    }
-
-    function resizeSelection(original, handle, point) {
-      const selection = selections.find((candidate) => candidate.id === original.id);
-      if (!selection) {
-        return;
-      }
-
-      const next = original.shape === "circle"
-        ? resizedCircleBox(original, point)
-        : resizedRectangleBox(original, handle, point);
-
-      selection.left = next.left;
-      selection.top = next.top;
-      selection.right = next.right;
-      selection.bottom = next.bottom;
-      selection.width = next.width;
-      selection.height = next.height;
-    }
-
-    function resizedRectangleBox(original, handle, point) {
-      let { left, top, right, bottom } = original;
-      const minSize = config.minSelectionSize;
-
-      if (handle.includes("w")) {
-        left = Math.min(point.x, right - minSize);
-      }
-      if (handle.includes("e")) {
-        right = Math.max(point.x, left + minSize);
-      }
-      if (handle.includes("n")) {
-        top = Math.min(point.y, bottom - minSize);
-      }
-      if (handle.includes("s")) {
-        bottom = Math.max(point.y, top + minSize);
-      }
-
-      left = Math.max(0, Math.min(sourceImage.naturalWidth - minSize, left));
-      top = Math.max(0, Math.min(sourceImage.naturalHeight - minSize, top));
-      right = Math.max(left + minSize, Math.min(sourceImage.naturalWidth, right));
-      bottom = Math.max(top + minSize, Math.min(sourceImage.naturalHeight, bottom));
-
-      return boxFromEdges(left, top, right, bottom);
-    }
-
-    function resizedCircleBox(original, point) {
-      const centerX = (original.left + original.right) / 2;
-      const centerY = (original.top + original.bottom) / 2;
-      const maxRadius = Math.max(
-        config.minSelectionSize / 2,
-        Math.min(centerX, centerY, sourceImage.naturalWidth - centerX, sourceImage.naturalHeight - centerY),
-      );
-      const radius = Math.max(
-        config.minSelectionSize / 2,
-        Math.min(maxRadius, Math.hypot(point.x - centerX, point.y - centerY)),
-      );
-      return boxFromEdges(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-    }
-
-    function findSelectionAt(point) {
-      for (let index = selections.length - 1; index >= 0; index -= 1) {
-        const selection = selections[index];
-        if (containsPoint(selection, point)) {
-          return selection;
-        }
-      }
-      return null;
-    }
-
-    function findResizeTarget(point) {
-      for (let index = selections.length - 1; index >= 0; index -= 1) {
-        const selection = selections[index];
-        const handle = selection.shape === "circle"
-          ? circleResizeHandle(selection, point)
-          : rectangleResizeHandle(selection, point);
-        if (handle) {
-          return { selection, handle };
-        }
-      }
-      return null;
-    }
-
-    function rectangleResizeHandle(selection, point) {
-      const pad = config.hitPadding;
-      const nearLeft = Math.abs(point.x - selection.left) <= pad;
-      const nearRight = Math.abs(point.x - selection.right) <= pad;
-      const nearTop = Math.abs(point.y - selection.top) <= pad;
-      const nearBottom = Math.abs(point.y - selection.bottom) <= pad;
-      const withinX = point.x >= selection.left - pad && point.x <= selection.right + pad;
-      const withinY = point.y >= selection.top - pad && point.y <= selection.bottom + pad;
-
-      if (nearLeft && nearTop) return "nw";
-      if (nearRight && nearTop) return "ne";
-      if (nearRight && nearBottom) return "se";
-      if (nearLeft && nearBottom) return "sw";
-      if (nearTop && withinX) return "n";
-      if (nearRight && withinY) return "e";
-      if (nearBottom && withinX) return "s";
-      if (nearLeft && withinY) return "w";
-      return null;
-    }
-
-    function circleResizeHandle(selection, point) {
-      const centerX = (selection.left + selection.right) / 2;
-      const centerY = (selection.top + selection.bottom) / 2;
-      const radius = (selection.right - selection.left) / 2;
-      const distance = Math.hypot(point.x - centerX, point.y - centerY);
-      return Math.abs(distance - radius) <= config.hitPadding ? "circle" : null;
-    }
-
-    function containsPoint(selection, point) {
-      const padded = {
-        left: selection.left - config.hitPadding,
-        top: selection.top - config.hitPadding,
-        right: selection.right + config.hitPadding,
-        bottom: selection.bottom + config.hitPadding,
-      };
-      if (point.x < padded.left || point.x > padded.right || point.y < padded.top || point.y > padded.bottom) {
-        return false;
-      }
-
-      if (selection.shape !== "circle") {
-        return true;
-      }
-
-      const centerX = (selection.left + selection.right) / 2;
-      const centerY = (selection.top + selection.bottom) / 2;
-      const radiusX = Math.max((selection.right - selection.left) / 2 + config.hitPadding, 1);
-      const radiusY = Math.max((selection.bottom - selection.top) / 2 + config.hitPadding, 1);
-      return ((point.x - centerX) / radiusX) ** 2 + ((point.y - centerY) / radiusY) ** 2 <= 1;
-    }
-
-    function boxFromDrag(start, end, shape) {
-      if (shape === "circle") {
-        const deltaX = end.x - start.x;
-        const deltaY = end.y - start.y;
-        const side = Math.max(Math.abs(deltaX), Math.abs(deltaY));
-        const signedEnd = {
-          x: start.x + (deltaX < 0 ? -side : side),
-          y: start.y + (deltaY < 0 ? -side : side),
-        };
-        return normalizedBox(start, signedEnd);
-      }
-
-      return normalizedBox(start, end);
-    }
-
-    function normalizedBox(start, end) {
-      let left = Math.min(start.x, end.x);
-      let top = Math.min(start.y, end.y);
-      let right = Math.max(start.x, end.x);
-      let bottom = Math.max(start.y, end.y);
-
-      const clampedLeftTop = clampPoint({ x: left, y: top });
-      const clampedRightBottom = clampPoint({ x: right, y: bottom });
-      left = Math.min(clampedLeftTop.x, clampedRightBottom.x);
-      top = Math.min(clampedLeftTop.y, clampedRightBottom.y);
-      right = Math.max(clampedLeftTop.x, clampedRightBottom.x);
-      bottom = Math.max(clampedLeftTop.y, clampedRightBottom.y);
-
-      return {
-        left,
-        top,
-        right,
-        bottom,
-        width: right - left,
-        height: bottom - top,
-      };
-    }
-
-    function boxFromEdges(left, top, right, bottom) {
-      return {
-        left,
-        top,
-        right,
-        bottom,
-        width: right - left,
-        height: bottom - top,
-      };
-    }
-
-    function canvasPoint(event) {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: (event.clientX - rect.left) * canvas.width / rect.width,
-        y: (event.clientY - rect.top) * canvas.height / rect.height,
-      };
-    }
-
-    function imagePointFromCanvas(point) {
-      return clampPoint({
-        x: point.x * sourceImage.naturalWidth / canvas.width,
-        y: point.y * sourceImage.naturalHeight / canvas.height,
-      });
-    }
-
-    function canvasBox(selection) {
-      const scaleX = canvas.width / sourceImage.naturalWidth;
-      const scaleY = canvas.height / sourceImage.naturalHeight;
-      return {
-        left: selection.left * scaleX,
-        top: selection.top * scaleY,
-        width: (selection.right - selection.left) * scaleX,
-        height: (selection.bottom - selection.top) * scaleY,
-      };
-    }
-
-    function clampPoint(point) {
-      return {
-        x: Math.max(0, Math.min(sourceImage.naturalWidth, point.x)),
-        y: Math.max(0, Math.min(sourceImage.naturalHeight, point.y)),
-      };
-    }
-
-    function describeSelection(selection) {
-      return `x:${selection.left.toFixed(1)}, y:${selection.top.toFixed(1)}, w:${selection.width.toFixed(1)}, h:${selection.height.toFixed(1)}`;
-    }
-
-    function withAlpha(hex, alpha) {
-      const value = hex.replace("#", "");
-      const r = parseInt(value.slice(0, 2), 16);
-      const g = parseInt(value.slice(2, 4), 16);
-      const b = parseInt(value.slice(4, 6), 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-  </script>
 {% endblock %}

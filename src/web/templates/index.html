@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}菜单 - CoordMarker{% endblock %}
+
+{% block head %}
+  <style>
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .menu-item {
+      display: block;
+      min-height: 120px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .menu-item:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+    }
+
+    .menu-item.is-disabled {
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .menu-item h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    .menu-item p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="menu-grid">
+    <a class="menu-item" href="{{ url_for('perspective_clip.index') }}">
+      <h2>透视矫正裁剪</h2>
+      <p>上传图片并调整角点，生成矫正后的裁剪结果。</p>
+    </a>
+    <a class="menu-item" href="{{ url_for('coord_mark.index') }}">
+      <h2>图片框选标记</h2>
+      <p>上传图片后使用矩形或圆形框选多个区域。</p>
+    </a>
+    <article class="menu-item is-disabled">
+      <h2>功能占位 3</h2>
+      <p>后续功能入口预留。</p>
+    </article>
+  </div>
+{% endblock %}

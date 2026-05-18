@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}透视矫正裁剪 - CoordMarker{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/perspective_clip.css') }}">
+  <script>
+    window.PERSPECTIVE_CLIP_CONFIG = {
+      endpoints: {
+        detect: "{{ url_for('perspective_clip.detect') }}",
+        clip: "{{ url_for('perspective_clip.clip') }}"
+      },
+      initial: {
+        pointLabels: ["左上", "右上", "右下", "左下"],
+        defaultCornerInsetRatio: 0.08,
+        minCanvasWidth: 280
+      },
+      messages: {
+        detecting: "正在自动检测角点...",
+        clipping: "正在生成裁剪结果...",
+        detectFallbackSuffix: "已保留默认框，可以拖动顶点手动调整。",
+        clipFailed: "裁剪失败。",
+        requestFailed: "请求失败。",
+        imageLoadFailed: "图片加载失败。"
+      }
+    };
+  </script>
+  <script src="{{ url_for('static', filename='js/perspective_clip.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+  <div id="perspectiveClipApp">
+    <div class="tool-header">
+      <h2>透视矫正裁剪</h2>
+      <a class="back-link" href="{{ url_for('menu.index') }}">返回菜单</a>
+    </div>
+
+    <div class="workspace">
+      <section class="panel source-panel">
+        <h3 class="panel-title">原图与角点</h3>
+        <div class="canvas-shell">
+          <canvas id="sourceCanvas" hidden></canvas>
+          <div id="sourceEmpty" class="empty-state">选择图片后会在这里显示自动检测框，顶点可以拖动调整。</div>
+        </div>
+      </section>
+
+      <section class="panel result-panel">
+        <h3 class="panel-title">裁剪结果</h3>
+        <div class="result-shell">
+          <img id="resultImage" alt="透视矫正裁剪结果" hidden>
+          <div id="resultEmpty" class="empty-state">生成后会在这里显示裁剪变换后的图片。</div>
+        </div>
+      </section>
+
+      <aside class="panel controls-panel">
+        <h3 class="panel-title">参数</h3>
+        <div class="control-panel">
+          <div id="message" class="message"></div>
+
+          <div class="field-group">
+            <label for="imageInput">图片文件</label>
+            <input id="imageInput" type="file" accept="image/*">
+          </div>
+
+          <div class="readout">
+            <div>
+              输入尺寸
+              <strong id="inputSize">-</strong>
+            </div>
+            <div>
+              当前输出
+              <strong id="resultSize">-</strong>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">当前四个点坐标</div>
+            <div id="cornerFields" class="corner-grid"></div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">输出尺寸</div>
+            <div class="size-grid">
+              <input id="outputWidth" type="number" min="1" step="1" placeholder="宽度，留空自动计算">
+              <input id="outputHeight" type="number" min="1" step="1" placeholder="高度，留空自动计算">
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="detectButton" type="button" class="secondary" disabled>重新自动检测</button>
+            <button id="clipButton" type="button" disabled>生成裁剪结果</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+{% endblock %}

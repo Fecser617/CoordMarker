@@ -23,16 +23,18 @@
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 336px;
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .canvas-panel,
 .controls-panel {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 14px;
   min-width: 0;
+  min-height: 0;
 }
 
 .panel-title {
@@ -66,11 +68,14 @@ canvas {
 
 .control-panel {
   display: grid;
+  align-content: start;
   gap: 16px;
+  min-height: 0;
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
+  overflow-y: auto;
 }
 
 .field-group {
